@@ -11,7 +11,7 @@ Compose를 활용한 Animation 적용
 Kotlin, Compose, [Crossfade](https://developer.android.com/jetpack/compose/animation?hl=ko#crossfade)
 
 ## gif
-![crossfade](https://github.com/vmkmym/android-templates/assets/71699054/a745fc50-fb12-4323-b19d-39c6b69fe864)
+![crossfade](https://github.com/vmkmym/android-templates/assets/71699054/a745fc50-fb12-4323-b19d-39c6b69fe864){: width="300px"}
 
 ## 구현 영상
 [crossfade](https://github.com/vmkmym/android-templates/assets/71699054/6dac17da-b7e9-43d3-952c-ea0a1245c625)
