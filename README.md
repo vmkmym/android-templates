@@ -10,8 +10,11 @@ Compose를 활용한 Animation 적용
 ## 필수조건
 Kotlin, Compose, [Crossfade](https://developer.android.com/jetpack/compose/animation?hl=ko#crossfade)
 
+## gif
+![crossfade](https://github.com/vmkmym/android-templates/assets/71699054/a745fc50-fb12-4323-b19d-39c6b69fe864)
+
 ## 구현 영상
-[4주차.webm](https://github.com/vmkmym/android-templates/assets/71699054/6dac17da-b7e9-43d3-952c-ea0a1245c625)
+[crossfade](https://github.com/vmkmym/android-templates/assets/71699054/6dac17da-b7e9-43d3-952c-ea0a1245c625)
 
 ## 추가
 - 이전 버튼을 추가해서 이전 이미지를 볼 수 있게 함
