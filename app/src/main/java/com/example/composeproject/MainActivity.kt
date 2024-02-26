@@ -48,11 +48,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen() {
-    ChangeImageAnimation()
+    CrossfadeImage()
 }
 
 @Composable
-fun ChangeImageAnimation() {
+fun CrossfadeImage() {
     val images = listOf(
         R.drawable.img1,
         R.drawable.img2,
@@ -111,6 +111,6 @@ fun ChangeImageAnimation() {
 @Composable
 fun GreetingPreview() {
     ComposeProjectTheme {
-        ChangeImageAnimation()
+        CrossfadeImage()
     }
 }
