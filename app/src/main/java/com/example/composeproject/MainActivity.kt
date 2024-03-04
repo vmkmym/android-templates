@@ -23,6 +23,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -35,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.composeproject.ui.theme.ComposeProjectTheme
+import com.example.composeproject.utils.generateLottoNumbers
+import com.example.composeproject.utils.random
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
@@ -46,34 +51,37 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    GenerateLotto()
+                    GenerateLottoButton()
                 }
             }
         }
     }
 }
 
+
 @Composable
-fun GenerateLotto() {
-    var lottoKey by remember { mutableIntStateOf(0) }
+fun GenerateLottoButton() {
     var lottoNumbers by remember { mutableStateOf(listOf<Int>()) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            lottoNumbers.forEach { number -> LottoBall(number, lottoKey) }
+            lottoNumbers.forEach { number -> LottoBall(number) }
         }
         Button(
             modifier = Modifier
+                .padding(bottom = 40.dp)
                 .width(140.dp)
                 .align(Alignment.CenterHorizontally),
             onClick = {
                 lottoNumbers = generateLottoNumbers()
-                lottoKey++
             }
         ) {
             Text("로또 번호 생성")
@@ -82,24 +90,32 @@ fun GenerateLotto() {
 }
 
 @Composable
-fun LottoBall(number: Int, key: Int) {
-    var targetValue by remember { mutableFloatStateOf(0f) }
-    val value by animateFloatAsState(
-        targetValue = targetValue,
+fun LottoBall(number: Int) {
+    var animateValue by remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(number) {
+        animateValue = 0f
+        animateValue = 0.3f
+        animateValue = 0.6f
+        animateValue = 0.9f
+        animateValue = 1f
+    }
+
+    val animatedScale by animateFloatAsState(
+        label = "animatedScale",
+        targetValue = animateValue,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioHighBouncy,
+            dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessMedium
-        ), label = ""
+        )
     )
-    val currentKey by rememberUpdatedState(key)
-    LaunchedEffect(currentKey) { targetValue = 1f }
 
     Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(50.dp)
             .background(Color.random(), CircleShape)
-            .scale(value),
-        contentAlignment = Alignment.Center
+            .scale(animatedScale)
     ) {
         Text(
             text = number.toString(),
@@ -107,16 +123,4 @@ fun LottoBall(number: Int, key: Int) {
             fontSize = 20.sp
         )
     }
-}
-
-fun generateLottoNumbers(): List<Int> {
-    return (1..45).shuffled().take(6)
-}
-
-fun Color.Companion.random(): Color {
-    return Color(
-        red = Random.nextFloat(),
-        green = Random.nextFloat(),
-        blue = Random.nextFloat()
-    )
 }
