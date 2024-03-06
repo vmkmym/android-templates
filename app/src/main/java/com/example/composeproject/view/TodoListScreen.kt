@@ -11,9 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.Button
@@ -40,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.composeproject.model.TodoItem
@@ -73,16 +73,15 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                         sheetState = sheetState,
                         onDismissRequest = { showBottomSheet = false },
                         content = {
-                            Column(
-                                modifier = Modifier.verticalScroll(rememberScrollState())
-                            ) {
+                            Column {
                                 TextField(
                                     value = viewModel.title,
                                     onValueChange = viewModel::updateTitle,
                                     maxLines = 1,
                                     textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
                                     colors = transparentTextFieldColors(),
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
                                 )
                                 TextField(
                                     value = viewModel.description,
@@ -90,7 +89,8 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                                     maxLines = Int.MAX_VALUE,
                                     textStyle = TextStyle(color = Color.DarkGray, fontSize = 14.sp),
                                     colors = transparentTextFieldColors(),
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
                                 )
                                 Row(
                                     modifier = Modifier
@@ -102,10 +102,12 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                                     ) {
                                         Text("취소")
                                     }
-                                    Button(onClick = {
-                                        viewModel.addTodoItem()
-                                        scope.launch { sheetState.hide() }
-                                    }) {
+                                    Button(
+                                        onClick = {
+                                            viewModel.addTodoItem()
+                                            scope.launch { sheetState.hide() }
+                                        }
+                                    ) {
                                         Text("확인")
                                     }
                                 }
@@ -123,20 +125,20 @@ fun TodoListScreen(viewModel: TodoViewModel) {
 
 @Composable
 fun TodoListCard(todoItem: TodoItem?, viewModel: TodoViewModel) {
-    todoItem?.let {
-        Box {
-            Row(
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Spacer(modifier = Modifier.padding(start = 5.dp))
+    Box {
+        Row(
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Spacer(modifier = Modifier.padding(start = 5.dp))
+            todoItem?.let { item ->
                 RadioButton(
-                    selected = it.isCompleted,
-                    onClick = {
-                        viewModel.updateIsCompleted(it)
-                    }
+                    selected = item.isCompleted,
+                    onClick = { viewModel.updateIsCompleted(item) }
                 )
-                Spacer(modifier = Modifier.padding(end = 5.dp))
-                Column {
+            }
+            Spacer(modifier = Modifier.padding(end = 5.dp))
+            Column {
+                todoItem?.let {
                     Text(
                         text = it.title,
                         style = TextStyle(color = Color.Black, fontSize = 20.sp),
@@ -152,8 +154,8 @@ fun TodoListCard(todoItem: TodoItem?, viewModel: TodoViewModel) {
                         style = TextStyle(color = Color.LightGray, fontSize = 11.sp),
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.padding(8.dp))
                 }
+                Spacer(modifier = Modifier.padding(8.dp))
             }
         }
     }
