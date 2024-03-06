@@ -40,13 +40,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.composeproject.model.TodoItem
 import com.example.composeproject.viewmodel.TodoViewModel
 import kotlinx.coroutines.launch
-
 
 @Composable
 @ExperimentalMaterial3Api
