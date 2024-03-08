@@ -7,6 +7,4 @@
 - Single Activity
 
 ### 영상
-<video width="300" controls>
-  <source src="https://github.com/vmkmym/android-templates/assets/71699054/abc940bb-b86d-4d6d-9030-f49c4c517644" type="video/webm">
-</video>
+[navigation.webm](https://github.com/vmkmym/android-templates/assets/71699054/56f23b94-63b4-4b86-b6b9-6aff603cfcc5)
