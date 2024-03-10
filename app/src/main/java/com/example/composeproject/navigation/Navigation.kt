@@ -14,20 +14,20 @@ fun MyApp() {
     NavHost(navController = navController, startDestination = "HomeScreen") {
         composable("HomeScreen") {
             HomeScreen(
-                onMailClick = { navController.navigate(Screen.Mail.route) },
-                onSettingClick = { navController.navigate(Screen.Setting.route) }
+                onMailClick = { navController.navigate(NavigationDestination.Mail.route) },
+                onSettingClick = { navController.navigate(NavigationDestination.Setting.route) }
             )
         }
         composable("MailScreen") {
             MailScreen(
-                onHomeClick = { navController.navigate(Screen.Home.route) },
-                onSettingClick = { navController.navigate(Screen.Setting.route) }
+                onHomeClick = { navController.navigate(NavigationDestination.Home.route) },
+                onSettingClick = { navController.navigate(NavigationDestination.Setting.route) }
             )
         }
         composable("SettingScreen") {
             SettingScreen(
-                onHomeClick = { navController.navigate(Screen.Home.route) },
-                onMailClick = { navController.navigate(Screen.Mail.route) }
+                onHomeClick = { navController.navigate(NavigationDestination.Home.route) },
+                onMailClick = { navController.navigate(NavigationDestination.Mail.route) }
             )
         }
     }
