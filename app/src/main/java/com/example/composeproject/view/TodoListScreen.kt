@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -37,13 +38,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.composeproject.R
 import com.example.composeproject.model.TodoItem
 import com.example.composeproject.viewmodel.TodoViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -67,53 +71,15 @@ fun TodoListScreen(viewModel: TodoViewModel) {
         LazyColumn(
             modifier = Modifier.padding(contentPadding)
         ) {
+            item {
+                // Add your header here
+                Text("Header")
+            }
             if (showBottomSheet) {
                 item {
-                    ModalBottomSheet(
-                        sheetState = sheetState,
-                        onDismissRequest = { showBottomSheet = false },
-                        content = {
-                            Column {
-                                TextField(
-                                    value = viewModel.title,
-                                    onValueChange = viewModel::updateTitle,
-                                    maxLines = 1,
-                                    textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
-                                    colors = transparentTextFieldColors(),
-                                    modifier = Modifier.fillMaxWidth(),
-                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-                                )
-                                TextField(
-                                    value = viewModel.description,
-                                    onValueChange = viewModel::updateDescription,
-                                    maxLines = Int.MAX_VALUE,
-                                    textStyle = TextStyle(color = Color.DarkGray, fontSize = 14.sp),
-                                    colors = transparentTextFieldColors(),
-                                    modifier = Modifier.fillMaxWidth(),
-                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-                                )
-                                Row(
-                                    modifier = Modifier
-                                        .align(Alignment.End)
-                                        .padding(top = 16.dp, bottom = 16.dp, start = 8.dp, end = 8.dp),
-                                ) {
-                                    Button(
-                                        onClick = { scope.launch { sheetState.hide() } }
-                                    ) {
-                                        Text("취소")
-                                    }
-                                    Button(
-                                        onClick = {
-                                            viewModel.addTodoItem()
-                                            scope.launch { sheetState.hide() }
-                                        }
-                                    ) {
-                                        Text("확인")
-                                    }
-                                }
-                            }
-                        }
-                    )
+                    ModalSheet(sheetState, viewModel, scope) {
+                        showBottomSheet = false
+                    }
                 }
             }
             items(viewModel.todoItems.value) { todoItem ->
@@ -121,6 +87,74 @@ fun TodoListScreen(viewModel: TodoViewModel) {
             }
         }
     }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+private fun ModalSheet(
+    sheetState: SheetState,
+    viewModel: TodoViewModel,
+    scope: CoroutineScope,
+    onDismissRequest: () -> Unit
+) {
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismissRequest,
+        content = {
+            Column {
+                TextField(
+                    value = viewModel.title,
+                    onValueChange = viewModel::updateTitle,
+                    maxLines = 1,
+                    textStyle = TextStyle(
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.jetbrains))
+                    ),
+                    colors = transparentTextFieldColors(),
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                )
+                TextField(
+                    value = viewModel.description,
+                    onValueChange = viewModel::updateDescription,
+                    maxLines = Int.MAX_VALUE,
+                    textStyle = TextStyle(
+                        color = Color.DarkGray,
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily(Font(R.font.jetbrains))
+                    ),
+                    colors = transparentTextFieldColors(),
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(
+                            top = 16.dp,
+                            bottom = 16.dp,
+                            start = 8.dp,
+                            end = 8.dp
+                        ),
+                ) {
+                    Button(
+                        onClick = { scope.launch { sheetState.hide() } }
+                    ) {
+                        Text("취소")
+                    }
+                    Button(
+                        onClick = {
+                            viewModel.addTodoItem()
+                            scope.launch { sheetState.hide() }
+                        }
+                    ) {
+                        Text("확인")
+                    }
+                }
+            }
+        }
+    )
 }
 
 @Composable
@@ -141,18 +175,27 @@ fun TodoListCard(todoItem: TodoItem?, viewModel: TodoViewModel) {
                 todoItem?.let {
                     Text(
                         text = it.title,
-                        style = TextStyle(color = Color.Black, fontSize = 20.sp),
-                        modifier = Modifier.fillMaxWidth()
+                        style = TextStyle(
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontFamily = FontFamily(Font(R.font.jetbrains))
+                        )
                     )
                     Text(
                         text = it.description,
-                        style = TextStyle(color = Color.DarkGray, fontSize = 16.sp),
-                        modifier = Modifier.fillMaxWidth()
+                        style = TextStyle(
+                            color = Color.DarkGray,
+                            fontSize = 16.sp,
+                            fontFamily = FontFamily(Font(R.font.jetbrains))
+                        )
                     )
                     Text(
                         text = it.formattedDate,
-                        style = TextStyle(color = Color.LightGray, fontSize = 11.sp),
-                        modifier = Modifier.fillMaxWidth()
+                        style = TextStyle(
+                            color = Color.LightGray,
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily(Font(R.font.jetbrains))
+                        )
                     )
                 }
                 Spacer(modifier = Modifier.padding(8.dp))
@@ -171,7 +214,7 @@ fun TopBar() {
                 text = "Todo List",
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif
+                fontFamily = FontFamily(Font(R.font.jetbrains))
             )
         }
     )
