@@ -17,11 +17,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -165,9 +165,9 @@ fun TodoListCard(todoItem: TodoItem?, viewModel: TodoViewModel) {
         ) {
             Spacer(modifier = Modifier.padding(start = 5.dp))
             todoItem?.let { item ->
-                RadioButton(
-                    selected = item.isCompleted,
-                    onClick = { viewModel.updateIsCompleted(item) }
+                Checkbox(
+                    checked = item.isCompleted,
+                    onCheckedChange = { viewModel.updateIsCompleted(item) }
                 )
             }
             Spacer(modifier = Modifier.padding(end = 5.dp))
