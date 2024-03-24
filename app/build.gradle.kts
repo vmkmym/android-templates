@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -30,17 +31,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        // https://developer.android.com/jetpack/androidx/releases/compose-kotlin?hl=ko
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        // https://developer.android.com/jetpack/androidx/releases/compose-kotlin?hl=ko
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
     packaging {
         resources {
@@ -50,6 +53,22 @@ android {
 }
 
 dependencies {
+//    implementation(libs.androidx.room.runtime)
+//    annotationProcessor(libs.androidx.room.room.compiler)
+//    // optional - Kotlin Extensions and Coroutines support for Room
+//    implementation(libs.androidx.room.ktx)
+//    ksp(libs.androidx.room.room.compiler)
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    // To use Kotlin Symbol Processing (KSP)
+    ksp("androidx.room:room-compiler:$roomVersion")
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$roomVersion")
+
+
+    // https://developer.android.com/jetpack/androidx/releases/lifecycle?hl=ko#version_27_2
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
