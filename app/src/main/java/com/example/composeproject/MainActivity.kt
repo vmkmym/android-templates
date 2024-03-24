@@ -7,13 +7,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider
+import com.example.composeproject.model.TodoRepository
+import com.example.composeproject.model.TodoRoomDatabase
 import com.example.composeproject.ui.theme.ComposeProjectTheme
 import com.example.composeproject.view.TodoListScreen
 import com.example.composeproject.viewmodel.TodoViewModel
+import com.example.composeproject.viewmodel.TodoViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -21,12 +22,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComposeProjectTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TodoListScreen(viewModel = TodoViewModel())
+                    val database = TodoRoomDatabase.getDatabase(this)
+                    val todoDao = database.todoDao()
+                    val repository = TodoRepository(todoDao)
+                    val viewModelFactory = TodoViewModelFactory(repository)
+                    val viewModel = ViewModelProvider(
+                        this,
+                        viewModelFactory
+                    )[TodoViewModel::class.java]
+                    TodoListScreen(viewModel = viewModel)
                 }
             }
         }
