@@ -3,10 +3,9 @@
 package com.example.composeproject.view
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +28,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,27 +62,26 @@ fun TodoListScreen(viewModel: TodoViewModel) {
         floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
-                onClick = { showBottomSheet = true }
+                onClick = {
+                    showBottomSheet = true
+                }
             ) {
                 Icon(Icons.Filled.Create, contentDescription = "Add Todo")
             }
         }
-    ) { contentPadding ->
+    ) {
+        val todolist = viewModel.getTodos.collectAsState(initial = listOf())
         LazyColumn(
-            modifier = Modifier.padding(contentPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
         ) {
-            item {
-                // Add your header here
-                Text("Header")
-            }
-            if (showBottomSheet) {
-                item {
+            items(todolist.value) { todoItem ->
+                if (showBottomSheet) {
                     ModalSheet(sheetState, viewModel, scope) {
                         showBottomSheet = false
                     }
                 }
-            }
-            items(viewModel.todoItems.value) { todoItem ->
                 TodoListCard(todoItem, viewModel)
             }
         }
@@ -99,12 +98,15 @@ private fun ModalSheet(
 ) {
     ModalBottomSheet(
         sheetState = sheetState,
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = {
+            onDismissRequest()
+            scope.launch { sheetState.hide() }
+        },
         content = {
             Column {
                 TextField(
-                    value = viewModel.title,
-                    onValueChange = viewModel::updateTitle,
+                    value = viewModel.todoTitleState,
+                    onValueChange = viewModel::onTodoTitleChanged,
                     maxLines = 1,
                     textStyle = TextStyle(
                         color = Color.Black,
@@ -116,8 +118,8 @@ private fun ModalSheet(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
                 )
                 TextField(
-                    value = viewModel.description,
-                    onValueChange = viewModel::updateDescription,
+                    value = viewModel.todoDescriptionState,
+                    onValueChange = viewModel::onTodoDescriptionChanged,
                     maxLines = Int.MAX_VALUE,
                     textStyle = TextStyle(
                         color = Color.DarkGray,
@@ -145,7 +147,7 @@ private fun ModalSheet(
                     }
                     Button(
                         onClick = {
-                            viewModel.addTodoItem()
+                            viewModel.addCurrentTodo()
                             scope.launch { sheetState.hide() }
                         }
                     ) {
@@ -158,49 +160,59 @@ private fun ModalSheet(
 }
 
 @Composable
-fun TodoListCard(todoItem: TodoItem?, viewModel: TodoViewModel) {
-    Box {
-        Row(
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Spacer(modifier = Modifier.padding(start = 5.dp))
-            todoItem?.let { item ->
-                Checkbox(
-                    checked = item.isCompleted,
-                    onCheckedChange = { viewModel.updateIsCompleted(item) }
-                )
-            }
-            Spacer(modifier = Modifier.padding(end = 5.dp))
-            Column {
-                todoItem?.let {
-                    Text(
-                        text = it.title,
-                        style = TextStyle(
-                            color = Color.Black,
-                            fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(R.font.jetbrains))
-                        )
-                    )
-                    Text(
-                        text = it.description,
-                        style = TextStyle(
-                            color = Color.DarkGray,
-                            fontSize = 16.sp,
-                            fontFamily = FontFamily(Font(R.font.jetbrains))
-                        )
-                    )
-                    Text(
-                        text = it.formattedDate,
-                        style = TextStyle(
-                            color = Color.LightGray,
-                            fontSize = 11.sp,
-                            fontFamily = FontFamily(Font(R.font.jetbrains))
-                        )
-                    )
-                }
-                Spacer(modifier = Modifier.padding(8.dp))
-            }
-        }
+fun TodoListCard(todoItem: TodoItem, viewModel: TodoViewModel) {
+    var isCompleted by remember { mutableStateOf(false) }
+
+    Row(
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Checkbox(
+            checked = isCompleted,
+            onCheckedChange = { newValue ->
+                isCompleted = newValue
+                viewModel.updateTodo(todoItem)
+            },
+            modifier = Modifier
+                .padding(top = 5.dp, start = 5.dp, end = 5.dp)
+        )
+        TodoList(it = todoItem)
+    }
+}
+
+
+@Composable
+private fun TodoList(it: TodoItem) {
+    Column(
+        modifier = Modifier
+            .padding(start = 10.dp, bottom = 10.dp)
+    ) {
+        Text(
+            text = it.title,
+            style = TextStyle(
+                color = Color.Black,
+                fontSize = 16.sp,
+                fontFamily = FontFamily(Font(R.font.jetbrains))
+            )
+        )
+
+        Text(
+            text = it.description,
+            style = TextStyle(
+                color = Color.DarkGray,
+                fontSize = 13.sp,
+                fontFamily = FontFamily(Font(R.font.jetbrains))
+            )
+        )
+
+        Text(
+            text = it.formattedDate,
+            style = TextStyle(
+                color = Color.LightGray,
+                fontSize = 10.sp,
+                fontFamily = FontFamily(Font(R.font.jetbrains))
+            )
+        )
+
     }
 }
 
