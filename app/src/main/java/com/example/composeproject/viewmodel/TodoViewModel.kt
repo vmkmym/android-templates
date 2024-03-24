@@ -1,45 +1,83 @@
 package com.example.composeproject.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.composeproject.model.Graph
 import com.example.composeproject.model.TodoItem
+import com.example.composeproject.model.TodoRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.util.Date
 
-class TodoViewModel : ViewModel() {
-    // 라디오 버튼
-    var isCompleted by mutableStateOf(false)
-    fun updateIsCompleted(todoItem: TodoItem) {
-        todoItem.isCompleted = !todoItem.isCompleted
+class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepository) : ViewModel() {
+
+    var todoTitleState by mutableStateOf("")
+    var todoDescriptionState by mutableStateOf("")
+
+    fun onTodoTitleChanged(newTitle: String) {
+        todoTitleState = newTitle
     }
 
-    // drawer
-    var title by mutableStateOf("")
-    fun updateTitle(newTitle: String) {
-        title = newTitle
+    fun onTodoDescriptionChanged(newDescription: String) {
+        todoDescriptionState = newDescription
     }
 
-    var description by mutableStateOf("")
-    fun updateDescription(newDescription: String) {
-        description = newDescription
-    }
 
-    // todolist에 title, description을 추가하는 로직
-    private val _todoItems = mutableStateOf(listOf<TodoItem>())
-    val todoItems = _todoItems
+    lateinit var getTodos: Flow<List<TodoItem>>
 
-    fun addTodoItem() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val newTodoItem = TodoItem(title = title, description = description)
-            _todoItems.value = _todoItems.value.plus(newTodoItem)
-            title = ""
-            description = ""
+    init {
+        viewModelScope.launch {
+            getTodos = todoRepository.getTodos()
         }
+    }
+
+    fun addTodo(todo: TodoItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            todoRepository.addTodo(todo)
+            onTodoTitleChanged("")
+            onTodoDescriptionChanged("")
+        }
+    }
+
+    fun getATodoById(id: Long): Flow<TodoItem> {
+        return todoRepository.getATodoById(id)
+    }
+
+    fun updateTodo(todo: TodoItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            todoRepository.updateTodo(todo)
+        }
+    }
+
+    fun deleteTodo(todo: TodoItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            todoRepository.deleteTodo(todo)
+            getTodos = todoRepository.getTodos()
+        }
+    }
+
+    fun addCurrentTodo() {
+        val todo = TodoItem(
+            title = todoTitleState,
+            description = todoDescriptionState,
+            date = Date()
+        )
+        addTodo(todo)
+    }
+
+}
+
+class TodoViewModelFactory(private val repository: TodoRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TodoViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return TodoViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
