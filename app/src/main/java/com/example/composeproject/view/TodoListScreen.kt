@@ -35,8 +35,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -76,18 +78,21 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                 .fillMaxSize()
                 .padding(it)
         ) {
-            items(todolist.value) { todoItem ->
+            item {
                 if (showBottomSheet) {
                     ModalSheet(sheetState, viewModel, scope) {
                         showBottomSheet = false
                     }
                 }
+            }
+            items(todolist.value) { todoItem ->
                 TodoListCard(todoItem, viewModel)
             }
         }
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalMaterial3Api
 @Composable
 private fun ModalSheet(
@@ -96,11 +101,16 @@ private fun ModalSheet(
     scope: CoroutineScope,
     onDismissRequest: () -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = {
             onDismissRequest()
-            scope.launch { sheetState.hide() }
+            scope.launch {
+                keyboardController?.hide()
+                sheetState.hide()
+            }
         },
         content = {
             Column {
@@ -141,14 +151,22 @@ private fun ModalSheet(
                         ),
                 ) {
                     Button(
-                        onClick = { scope.launch { sheetState.hide() } }
+                        onClick = {
+                            scope.launch {
+                                keyboardController?.hide()
+                                sheetState.hide()
+                            }
+                        }
                     ) {
                         Text("취소")
                     }
                     Button(
                         onClick = {
                             viewModel.addCurrentTodo()
-                            scope.launch { sheetState.hide() }
+                            scope.launch {
+                                keyboardController?.hide()
+                                sheetState.hide()
+                            }
                         }
                     ) {
                         Text("확인")
