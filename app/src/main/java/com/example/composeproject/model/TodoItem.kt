@@ -20,6 +20,8 @@ data class TodoItem(
     val description: String,
     @ColumnInfo(name = "date")
     val date: Date,
+    @ColumnInfo(name = "dueDate")
+    val dueDate: Date? = null,
     @ColumnInfo(name = "is-completed")
     var isCompleted: Boolean = false
 ) {

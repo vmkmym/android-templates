@@ -2,9 +2,11 @@
 
 package com.example.composeproject.view
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,6 +30,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -51,6 +55,10 @@ import com.example.composeproject.model.TodoItem
 import com.example.composeproject.viewmodel.TodoViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 @ExperimentalMaterial3Api
@@ -102,6 +110,15 @@ private fun ModalSheet(
     onDismissRequest: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    var selectedDate by remember { mutableStateOf<Date?>(null) }
+
+    if (selectedDate == null) {
+        SelectYearMonthDay { year, month, day ->
+            val calendar = Calendar.getInstance()
+            calendar.set(year, month - 1, day)
+            selectedDate = calendar.time
+        }
+    }
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -143,13 +160,16 @@ private fun ModalSheet(
                 Row(
                     modifier = Modifier
                         .align(Alignment.End)
-                        .padding(
-                            top = 16.dp,
-                            bottom = 16.dp,
-                            start = 8.dp,
-                            end = 8.dp
-                        ),
+                        .padding(top = 16.dp, bottom = 16.dp, start = 8.dp, end = 8.dp),
                 ) {
+                    // 마감기한을 선택하는 버튼 (사용자 선택사항)
+                    Button(onClick = {
+                        viewModel.dueDateState = selectedDate
+                        selectedDate = null
+                    }) {
+                        Text("마감기한 선택")
+                    }
+                    Spacer(modifier = Modifier.padding(end = 8.dp))
                     Button(
                         onClick = {
                             scope.launch {
@@ -221,16 +241,28 @@ private fun TodoList(it: TodoItem) {
                 fontFamily = FontFamily(Font(R.font.jetbrains))
             )
         )
-
-        Text(
-            text = it.formattedDate,
-            style = TextStyle(
-                color = Color.LightGray,
-                fontSize = 10.sp,
-                fontFamily = FontFamily(Font(R.font.jetbrains))
+        Row {
+            Text(
+                text = it.formattedDate,
+                style = TextStyle(
+                    color = Color.LightGray,
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily(Font(R.font.jetbrains))
+                )
             )
-        )
-
+            it.dueDate?.let { dueDate ->
+                val format = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                val formattedDueDate = format.format(dueDate)
+                Text(
+                    text = "   마감일: $formattedDueDate",
+                    style = TextStyle(
+                        color = Color.Blue,
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily(Font(R.font.jetbrains))
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -258,3 +290,20 @@ fun transparentTextFieldColors() = TextFieldDefaults.textFieldColors(
     unfocusedIndicatorColor = Color.LightGray
 )
 
+@Composable
+fun SelectYearMonthDay(onDateSelected: (year: Int, month: Int, day: Int) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    LaunchedEffect(key1 = true) {
+        val datePickerDialog = DatePickerDialog(context, { _, selectedYear, selectedMonth, selectedDay ->
+            onDateSelected(selectedYear, selectedMonth + 1, selectedDay)
+        }, year, month, day)
+
+        datePickerDialog.datePicker.minDate = calendar.timeInMillis
+        datePickerDialog.show()
+    }
+}

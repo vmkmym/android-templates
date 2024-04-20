@@ -18,6 +18,7 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
 
     var todoTitleState by mutableStateOf("")
     var todoDescriptionState by mutableStateOf("")
+    var dueDateState by mutableStateOf<Date?>(null)
 
     fun onTodoTitleChanged(newTitle: String) {
         todoTitleState = newTitle
@@ -36,7 +37,7 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
         }
     }
 
-    fun addTodo(todo: TodoItem) {
+    private fun addTodo(todo: TodoItem) {
         viewModelScope.launch(Dispatchers.IO) {
             todoRepository.addTodo(todo)
             onTodoTitleChanged("")
@@ -65,11 +66,12 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
         val todo = TodoItem(
             title = todoTitleState,
             description = todoDescriptionState,
-            date = Date()
+            date = Date(),
+            dueDate = dueDateState,
+            isCompleted = false
         )
         addTodo(todo)
     }
-
 }
 
 class TodoViewModelFactory(private val repository: TodoRepository) : ViewModelProvider.Factory {
