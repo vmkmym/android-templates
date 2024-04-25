@@ -3,6 +3,7 @@
 package com.example.composeproject.view
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -96,7 +97,13 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                 }
             }
             items(todolist.value) { todoItem ->
-                TodoListCard(todoItem, viewModel)
+                TodoListCard(todoItem, viewModel) { selectedTodo ->
+                    viewModel.selectedTodo = selectedTodo
+                    viewModel.todoTitleState = selectedTodo.title
+                    viewModel.todoDescriptionState = selectedTodo.description
+                    viewModel.dueDateState = selectedTodo.dueDate
+                    showBottomSheet = true
+                }
             }
         }
     }
@@ -113,6 +120,7 @@ private fun ModalSheet(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var selectedDate by remember { mutableStateOf<Date?>(null) }
+    var selectedTodo by remember { mutableStateOf<TodoItem?>(null) }
 
     if (selectedDate == null) {
         SelectYearMonthDay { year, month, day ->
@@ -165,10 +173,12 @@ private fun ModalSheet(
                         .padding(top = 16.dp, bottom = 16.dp, start = 8.dp, end = 8.dp),
                 ) {
                     // 마감기한을 선택하는 버튼 (사용자 선택사항)
-                    Button(onClick = {
-                        viewModel.dueDateState = selectedDate
-                        selectedDate = null
-                    }) {
+                    Button(
+                        onClick = {
+                            viewModel.dueDateState = selectedDate
+                            selectedDate = null
+                        }
+                    ) {
                         Text("마감기한 선택")
                     }
                     Spacer(modifier = Modifier.padding(end = 8.dp))
@@ -182,6 +192,19 @@ private fun ModalSheet(
                     ) {
                         Text("취소")
                     }
+                    if (viewModel.selectedTodo != null) {
+                        Button(
+                            onClick = {
+                                viewModel.updateTodo()
+                                scope.launch {
+                                    keyboardController?.hide()
+                                    sheetState.hide()
+                                }
+                            }
+                        ) {
+                            Text("수정")
+                        }
+                    } else {
                     Button(
                         onClick = {
                             viewModel.addCurrentTodo()
@@ -194,24 +217,32 @@ private fun ModalSheet(
                         Text("확인")
                     }
                 }
+                }
             }
         }
     )
 }
 
 @Composable
-fun TodoListCard(todoItem: TodoItem, viewModel: TodoViewModel) {
+fun TodoListCard(
+    todoItem: TodoItem,
+    viewModel: TodoViewModel,
+    onCardClick: (TodoItem) -> Unit
+) {
     var isCompleted by remember(todoItem.id) { mutableStateOf(todoItem.isCompleted) }
 
     Row(
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier
+            .clickable { onCardClick(todoItem) }
+            .fillMaxWidth()
     ) {
         Checkbox(
             checked = isCompleted,
             onCheckedChange = { newValue ->
                 isCompleted = newValue
                 todoItem.isCompleted = newValue
-                viewModel.updateTodo(todoItem)
+                viewModel.updateTodo()
                 if (newValue) {
                     viewModel.onTodoSelected(todoItem)
                 } else {
@@ -318,9 +349,10 @@ fun SelectYearMonthDay(onDateSelected: (year: Int, month: Int, day: Int) -> Unit
     val day = calendar.get(Calendar.DAY_OF_MONTH)
 
     LaunchedEffect(key1 = true) {
-        val datePickerDialog = DatePickerDialog(context, { _, selectedYear, selectedMonth, selectedDay ->
-            onDateSelected(selectedYear, selectedMonth + 1, selectedDay)
-        }, year, month, day)
+        val datePickerDialog =
+            DatePickerDialog(context, { _, selectedYear, selectedMonth, selectedDay ->
+                onDateSelected(selectedYear, selectedMonth + 1, selectedDay)
+            }, year, month, day)
 
         datePickerDialog.datePicker.minDate = calendar.timeInMillis
         datePickerDialog.show()

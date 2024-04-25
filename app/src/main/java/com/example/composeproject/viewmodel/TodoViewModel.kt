@@ -16,11 +16,12 @@ import java.util.Date
 
 class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepository) :
     ViewModel() {
-
+    var selectedTodo: TodoItem? = null
     var todoTitleState by mutableStateOf("")
     var todoDescriptionState by mutableStateOf("")
     var dueDateState by mutableStateOf<Date?>(null)
-    var selectedTodosState by mutableStateOf<List<TodoItem>>(emptyList())
+    private var selectedTodosState by mutableStateOf<List<TodoItem>>(emptyList())
+
 
     fun onTodoTitleChanged(newTitle: String) {
         todoTitleState = newTitle
@@ -46,9 +47,20 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
         }
     }
 
-    fun updateTodo(todo: TodoItem) {
-        viewModelScope.launch(Dispatchers.IO) {
-            todoRepository.updateTodo(todo)
+    fun updateTodo() {
+        selectedTodo?.let { selectedTodo ->
+            val updatedTodo = TodoItem(
+                id = selectedTodo.id,
+                title = todoTitleState,
+                description = todoDescriptionState,
+                date = Date(),
+                dueDate = dueDateState,
+                isCompleted = false
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                todoRepository.updateTodo(updatedTodo)
+                getTodos = todoRepository.getTodos()
+            }
         }
     }
 
@@ -68,7 +80,6 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
         }
         selectedTodosState = emptyList()
         viewModelScope.launch {
-            // 선택한 항목을 삭제한 후에 목록을 다시 가져옴.
             getTodos = todoRepository.getTodos()
         }
     }
