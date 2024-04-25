@@ -26,4 +26,7 @@ interface TodoDao {
 
     @Query("Select * from todo_table where id=:id")
     fun getATodoById(id:Long): Flow<TodoItem>
+
+    @Query("DELETE FROM todo_table WHERE 'is-completed' = 1")
+    suspend fun deleteCompletedTodos()
 }

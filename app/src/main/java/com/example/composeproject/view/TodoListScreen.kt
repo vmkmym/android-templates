@@ -16,12 +16,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -68,7 +70,7 @@ fun TodoListScreen(viewModel: TodoViewModel) {
     var showBottomSheet by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopBar() },
+        topBar = { TopBar(viewModel) },
         floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
@@ -199,7 +201,7 @@ private fun ModalSheet(
 
 @Composable
 fun TodoListCard(todoItem: TodoItem, viewModel: TodoViewModel) {
-    var isCompleted by remember { mutableStateOf(false) }
+    var isCompleted by remember(todoItem.id) { mutableStateOf(todoItem.isCompleted) }
 
     Row(
         horizontalArrangement = Arrangement.Start
@@ -208,7 +210,13 @@ fun TodoListCard(todoItem: TodoItem, viewModel: TodoViewModel) {
             checked = isCompleted,
             onCheckedChange = { newValue ->
                 isCompleted = newValue
+                todoItem.isCompleted = newValue
                 viewModel.updateTodo(todoItem)
+                if (newValue) {
+                    viewModel.onTodoSelected(todoItem)
+                } else {
+                    viewModel.onTodoDeselected(todoItem)
+                }
             },
             modifier = Modifier
                 .padding(top = 5.dp, start = 5.dp, end = 5.dp)
@@ -269,7 +277,7 @@ private fun TodoList(it: TodoItem) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar() {
+fun TopBar(viewModel: TodoViewModel) {
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -278,6 +286,17 @@ fun TopBar() {
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily(Font(R.font.jetbrains))
             )
+        },
+        actions = {
+            IconButton(
+                onClick = { viewModel.deleteSelectedTodos() }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Delete",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         }
     )
 }

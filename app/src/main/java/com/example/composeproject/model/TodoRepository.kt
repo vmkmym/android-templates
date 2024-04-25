@@ -12,10 +12,6 @@ class TodoRepository(private val todoDao: TodoDao) {
 
     fun getTodos(): Flow<List<TodoItem>> = todoDao.getAllTodos()
 
-    fun getATodoById(id: Long): Flow<TodoItem> {
-        return todoDao.getATodoById(id)
-    }
-
     suspend fun updateTodo(todoItem: TodoItem) {
         todoDao.updateTodo(todoItem)
     }
@@ -23,5 +19,4 @@ class TodoRepository(private val todoDao: TodoDao) {
     suspend fun deleteTodo(todoItem: TodoItem) {
         todoDao.deleteTodo(todoItem)
     }
-
 }

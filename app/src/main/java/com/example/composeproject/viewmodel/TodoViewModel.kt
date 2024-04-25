@@ -14,11 +14,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.util.Date
 
-class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepository) : ViewModel() {
+class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepository) :
+    ViewModel() {
 
     var todoTitleState by mutableStateOf("")
     var todoDescriptionState by mutableStateOf("")
     var dueDateState by mutableStateOf<Date?>(null)
+    var selectedTodosState by mutableStateOf<List<TodoItem>>(emptyList())
 
     fun onTodoTitleChanged(newTitle: String) {
         todoTitleState = newTitle
@@ -27,7 +29,6 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
     fun onTodoDescriptionChanged(newDescription: String) {
         todoDescriptionState = newDescription
     }
-
 
     lateinit var getTodos: Flow<List<TodoItem>>
 
@@ -45,19 +46,29 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
         }
     }
 
-    fun getATodoById(id: Long): Flow<TodoItem> {
-        return todoRepository.getATodoById(id)
-    }
-
     fun updateTodo(todo: TodoItem) {
         viewModelScope.launch(Dispatchers.IO) {
             todoRepository.updateTodo(todo)
         }
     }
 
-    fun deleteTodo(todo: TodoItem) {
-        viewModelScope.launch(Dispatchers.IO) {
-            todoRepository.deleteTodo(todo)
+    fun onTodoSelected(todo: TodoItem) {
+        selectedTodosState = selectedTodosState + todo
+    }
+
+    fun onTodoDeselected(todo: TodoItem) {
+        selectedTodosState = selectedTodosState - todo
+    }
+
+    fun deleteSelectedTodos() {
+        selectedTodosState.forEach { todo ->
+            viewModelScope.launch(Dispatchers.IO) {
+                todoRepository.deleteTodo(todo)
+            }
+        }
+        selectedTodosState = emptyList()
+        viewModelScope.launch {
+            // 선택한 항목을 삭제한 후에 목록을 다시 가져옴.
             getTodos = todoRepository.getTodos()
         }
     }
