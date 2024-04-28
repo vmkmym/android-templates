@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 // https://developer.android.com/studio/inspect/database?utm_source=android-studio
-@Database(entities = [TodoItem::class], version = 2, exportSchema = false)
+@Database(entities = [TodoItem::class], version = 3, exportSchema = false)
 abstract class TodoRoomDatabase : RoomDatabase() {
 
     abstract fun todoDao(): TodoDao
@@ -24,6 +24,12 @@ abstract class TodoRoomDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE todo_table ADD COLUMN priority INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): TodoRoomDatabase {
             val tempInstance = INSTANCE
             if (tempInstance != null) {
@@ -35,7 +41,8 @@ abstract class TodoRoomDatabase : RoomDatabase() {
                     TodoRoomDatabase::class.java,
                     "todo_database"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .fallbackToDestructiveMigrationOnDowngrade()
                     .build()
                 INSTANCE = instance
                 return instance
