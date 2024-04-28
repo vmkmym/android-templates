@@ -18,10 +18,12 @@ data class TodoItem(
     val title: String,
     @ColumnInfo(name = "todo-desc")
     val description: String,
-    @ColumnInfo(name = "date")
+    @ColumnInfo(name = "date") // 생성일
     val date: Date,
-    @ColumnInfo(name = "dueDate")
+    @ColumnInfo(name = "dueDate") // 마감일
     val dueDate: Date? = null,
+    @ColumnInfo(name = "priority") // 우선순위
+    val priority: Int = 0,
     @ColumnInfo(name = "is-completed")
     var isCompleted: Boolean = false
 ) {
