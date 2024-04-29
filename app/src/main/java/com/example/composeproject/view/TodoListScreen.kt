@@ -61,6 +61,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.composeproject.R
+import com.example.composeproject.model.SortOption
 import com.example.composeproject.model.TodoItem
 import com.example.composeproject.viewmodel.TodoViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -318,7 +319,8 @@ private fun TodoList(it: TodoItem) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(viewModel: TodoViewModel) {
-    val sortOptions = listOf("생성일 기준", "마감기한 내림차순", "마감기한 오름차순", "우선순위 내림차순", "우선순위 오름차순")
+//    val sortOptions = listOf("생성일 기준", "마감기한 내림차순", "마감기한 오름차순", "우선순위 내림차순", "우선순위 오름차순")
+    var sortOptions by remember { mutableStateOf(SortOption.entries) }
     var selectedSortIndex by remember { mutableIntStateOf(0) }
     var expanded by remember { mutableStateOf(false) }
     val onExpandedChanged = { newExpanded: Boolean ->
@@ -529,7 +531,7 @@ private fun getPriorityText(priority: Int?): String {
 
 @Composable
 fun SortDropdown(
-    sortOptions: List<String>,
+    sortOptions: List<SortOption>,
     selectedSortIndex: Int,
     expanded: Boolean,
     onExpandedChanged: (Boolean) -> Unit,
@@ -547,7 +549,7 @@ fun SortDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            sortOption,
+                            text = sortOption.name,
                             color = if (index == selectedSortIndex) Color.Blue else Color.Black
                         )
                     },
