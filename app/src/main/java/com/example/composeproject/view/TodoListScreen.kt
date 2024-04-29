@@ -96,7 +96,7 @@ fun TodoListScreen(viewModel: TodoViewModel) {
         ) {
             item {
                 if (showBottomSheet) {
-                    ModalSheet(sheetState, viewModel, scope) {
+                    TodoInputSheet(sheetState, viewModel, scope) {
                         showBottomSheet = false
                     }
                 }
@@ -114,7 +114,7 @@ fun TodoListScreen(viewModel: TodoViewModel) {
 @OptIn(ExperimentalComposeUiApi::class)
 @ExperimentalMaterial3Api
 @Composable
-private fun ModalSheet(
+private fun TodoInputSheet(
     sheetState: SheetState,
     viewModel: TodoViewModel,
     scope: CoroutineScope,
@@ -137,83 +137,97 @@ private fun ModalSheet(
                     .fillMaxWidth()
                     .padding(10.dp)
             ) {
-                TextField(
-                    value = viewModel.todoTitleState,
-                    onValueChange = viewModel::onTodoTitleChanged,
-                    maxLines = 1,
-                    textStyle = TextStyle(
-                        color = Color.Black,
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.jetbrains))
-                    ),
-                    colors = transparentTextFieldColors(),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-                )
-                TextField(
-                    value = viewModel.todoDescriptionState,
-                    onValueChange = viewModel::onTodoDescriptionChanged,
-                    maxLines = Int.MAX_VALUE,
-                    textStyle = TextStyle(
-                        color = Color.DarkGray,
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily(Font(R.font.jetbrains))
-                    ),
-                    colors = transparentTextFieldColors(),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-                )
-
-                // 우선 순위 드랍다운 버튼
+                TitleInput(viewModel)
+                DescriptionInput(viewModel)
                 PriorityDropdownButton(viewModel)
-
-                // 마감 기한 버튼
                 DeadlineButton(viewModel)
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                keyboardController?.hide()
-                                sheetState.hide()
-                            }
-                        }
-                    ) {
-                        Text("취소")
-                    }
-                    if (viewModel.selectedTodo != null) {
-                        Button(
-                            onClick = {
-                                viewModel.updateTodo()
-                                scope.launch {
-                                    keyboardController?.hide()
-                                    sheetState.hide()
-                                }
-                            }
-                        ) {
-                            Text("수정")
-                        }
-                    } else {
-                        Button(
-                            onClick = {
-                                viewModel.addCurrentTodo()
-                                scope.launch {
-                                    keyboardController?.hide()
-                                    sheetState.hide()
-                                }
-                            }
-                        ) {
-                            Text("확인")
-                        }
-                    }
-                }
+                ActionButtons(sheetState, viewModel, scope)
             }
         }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@Composable
+fun ActionButtons(sheetState: SheetState, viewModel: TodoViewModel, scope: CoroutineScope) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Button(
+            onClick = {
+                scope.launch {
+                    keyboardController?.hide()
+                    sheetState.hide()
+                }
+            }
+        ) {
+            Text("취소")
+        }
+        if (viewModel.selectedTodo != null) {
+            Button(
+                onClick = {
+                    viewModel.updateTodo()
+                    scope.launch {
+                        keyboardController?.hide()
+                        sheetState.hide()
+                    }
+                }
+            ) {
+                Text("수정")
+            }
+        } else {
+            Button(
+                onClick = {
+                    viewModel.addCurrentTodo()
+                    scope.launch {
+                        keyboardController?.hide()
+                        sheetState.hide()
+                    }
+                }
+            ) {
+                Text("확인")
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun DescriptionInput(viewModel: TodoViewModel) {
+    TextField(
+        value = viewModel.todoDescriptionState,
+        onValueChange = viewModel::onTodoDescriptionChanged,
+        maxLines = Int.MAX_VALUE,
+        textStyle = TextStyle(
+            color = Color.DarkGray,
+            fontSize = 14.sp,
+            fontFamily = FontFamily(Font(R.font.jetbrains))
+        ),
+        colors = transparentTextFieldColors(),
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+    )
+}
+
+@Composable
+private fun TitleInput(viewModel: TodoViewModel) {
+    TextField(
+        value = viewModel.todoTitleState,
+        onValueChange = viewModel::onTodoTitleChanged,
+        maxLines = 1,
+        textStyle = TextStyle(
+            color = Color.Black,
+            fontSize = 16.sp,
+            fontFamily = FontFamily(Font(R.font.jetbrains))
+        ),
+        colors = transparentTextFieldColors(),
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
     )
 }
 
