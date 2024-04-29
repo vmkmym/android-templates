@@ -29,4 +29,19 @@ interface TodoDao {
 
     @Query("DELETE FROM todo_table WHERE 'is-completed' = 1")
     suspend fun deleteCompletedTodos()
+
+    @Query("SELECT * FROM todo_table ORDER BY date")
+    fun getTodosSortedByDate(): Flow<List<TodoItem>>
+
+    @Query("SELECT * FROM todo_table ORDER BY dueDate DESC")
+    fun getTodosSortedByDueDateDescending(): Flow<List<TodoItem>>
+
+    @Query("SELECT * FROM todo_table ORDER BY dueDate ASC")
+    fun getTodosSortedByDueDateAscending(): Flow<List<TodoItem>>
+
+    @Query("SELECT * FROM todo_table ORDER BY priority DESC")
+    fun getTodosSortedByPriorityDescending(): Flow<List<TodoItem>>
+
+    @Query("SELECT * FROM todo_table ORDER BY priority ASC")
+    fun getTodosSortedByPriorityAscending(): Flow<List<TodoItem>>
 }

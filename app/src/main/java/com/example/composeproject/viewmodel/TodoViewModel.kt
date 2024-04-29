@@ -1,8 +1,11 @@
 package com.example.composeproject.viewmodel
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -20,8 +23,11 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
     var todoTitleState by mutableStateOf("")
     var todoDescriptionState by mutableStateOf("")
     var dueDateState by mutableStateOf<Date?>(null)
+    var priorityState by mutableIntStateOf(0)
     private var selectedTodosState by mutableStateOf<List<TodoItem>>(emptyList())
 
+    val todos: LiveData<List<TodoItem>> get() = _todos
+    private val _todos = MutableLiveData<List<TodoItem>>()
 
     fun onTodoTitleChanged(newTitle: String) {
         todoTitleState = newTitle
@@ -47,23 +53,6 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
         }
     }
 
-    fun updateTodo() {
-        selectedTodo?.let { selectedTodo ->
-            val updatedTodo = TodoItem(
-                id = selectedTodo.id,
-                title = todoTitleState,
-                description = todoDescriptionState,
-                date = Date(),
-                dueDate = dueDateState,
-                isCompleted = false
-            )
-            viewModelScope.launch(Dispatchers.IO) {
-                todoRepository.updateTodo(updatedTodo)
-                getTodos = todoRepository.getTodos()
-            }
-        }
-    }
-
     fun onTodoSelected(todo: TodoItem) {
         selectedTodosState = selectedTodosState + todo
     }
@@ -85,14 +74,49 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
     }
 
     fun addCurrentTodo() {
-        val todo = TodoItem(
+        val item = TodoItem(
             title = todoTitleState,
             description = todoDescriptionState,
             date = Date(),
             dueDate = dueDateState,
+            priority = priorityState,
             isCompleted = false
         )
-        addTodo(todo)
+        viewModelScope.launch(Dispatchers.IO) {
+            addTodo(item)
+            getTodos = todoRepository.getTodos()
+        }
+    }
+
+    fun updateTodo() {
+        selectedTodo?.let { selectedTodo ->
+            val updatedTodo = TodoItem(
+                id = selectedTodo.id,
+                title = todoTitleState,
+                description = todoDescriptionState,
+                date = Date(),
+                dueDate = dueDateState,
+                priority = selectedTodo.priority,
+                isCompleted = false
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                todoRepository.updateTodo(updatedTodo)
+                getTodos = todoRepository.getTodos()
+            }
+        }
+    }
+
+    fun sortTodos(sortOption: Int) {
+        viewModelScope.launch {
+            getTodos = when (sortOption) {
+                0 -> todoRepository.getTodosSortedByDate()
+                1 -> todoRepository.getTodosSortedByDueDateDescending()
+                2 -> todoRepository.getTodosSortedByDueDateAscending()
+                3 -> todoRepository.getTodosSortedByPriorityDescending()
+                4 -> todoRepository.getTodosSortedByPriorityAscending()
+                else -> todoRepository.getTodos()
+            }
+        }
     }
 }
 

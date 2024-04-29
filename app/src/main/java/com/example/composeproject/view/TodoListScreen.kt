@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION", "NAME_SHADOWING")
 
 package com.example.composeproject.view
 
@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
@@ -31,7 +32,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -47,7 +47,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -67,10 +66,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
-//TODO: 정렬 버튼을 누르면 생성일 기준, 마감기한 내림차순, 마감기한 오름차순, 우선순위 내림차순, 우선순위 오름차순. 만약 마감기한이나 우선순위 기준으로 정렬을 했는데 해당값이 없음이면, 생성일 기준으로 대체.
 
 @Composable
 @ExperimentalMaterial3Api
@@ -111,6 +108,7 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                     viewModel.todoTitleState = selectedTodo.title
                     viewModel.todoDescriptionState = selectedTodo.description
                     viewModel.dueDateState = selectedTodo.dueDate
+                    viewModel.priorityState = selectedTodo.priority
                     showBottomSheet = true
                 }
             }
@@ -172,7 +170,7 @@ private fun ModalSheet(
                 )
 
                 // 우선 순위 드랍다운 버튼
-                PriorityDropdownButton()
+                PriorityDropdownButton(viewModel)
 
                 // 마감 기한 버튼
                 DeadlineButton(viewModel)
@@ -235,8 +233,8 @@ fun TodoListCard(
     Row(
         horizontalArrangement = Arrangement.Start,
         modifier = Modifier
-            .clickable { onCardClick(todoItem) }
             .fillMaxWidth()
+            .clickable { onCardClick(todoItem) }
     ) {
         Checkbox(
             checked = isCompleted,
@@ -258,60 +256,35 @@ fun TodoListCard(
 
 @Composable
 private fun TodoList(it: TodoItem) {
-    val priorities = listOf(" ", "!", "!!", "!!!")
-    val index = it.priority % priorities.size
-    val priorityText = priorities[index]
+    val priorityText = getPriorityText(it.priority)
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = priorityText,
-            style = TextStyle(
-                color = Color.Red,
-                fontSize = 14.sp,
-                fontFamily = FontFamily(Font(R.font.jetbrains))
+    Column {
+        Row {
+            Text(
+                text = priorityText,
+                style = priorityTextStyle
             )
-        )
-        Column {
             Text(
                 text = it.title,
-                style = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontFamily = FontFamily(Font(R.font.jetbrains))
-                )
+                style = titleTextStyle
             )
+        }
+        Text(
+            text = it.description,
+            style = descriptionTextStyle
+        )
+        Row {
             Text(
-                text = it.description,
-                style = TextStyle(
-                    color = Color.DarkGray,
-                    fontSize = 13.sp,
-                    fontFamily = FontFamily(Font(R.font.jetbrains))
-                )
+                text = "생성일: ${it.formattedDate}",
+                style = dateTextStyle
             )
-            Row {
+            it.dueDate?.let { dueDate ->
+                val format = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
+                val formattedDueDate = format.format(dueDate)
                 Text(
-                    text = "생성일: ${it.formattedDate}",
-                    style = TextStyle(
-                        color = Color.LightGray,
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily(Font(R.font.jetbrains))
-                    )
+                    text = "   마감일: $formattedDueDate",
+                    style = dateTextStyle
                 )
-                it.dueDate?.let { dueDate ->
-                    val format = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
-                    val formattedDueDate = format.format(dueDate)
-                    Text(
-                        text = "   마감일: $formattedDueDate",
-                        style = TextStyle(
-                            color = Color.LightGray,
-                            fontSize = 10.sp,
-                            fontFamily = FontFamily(Font(R.font.jetbrains))
-                        )
-                    )
-                }
             }
         }
     }
@@ -321,6 +294,18 @@ private fun TodoList(it: TodoItem) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(viewModel: TodoViewModel) {
+    val sortOptions = listOf("생성일 기준", "마감기한 내림차순", "마감기한 오름차순", "우선순위 내림차순", "우선순위 오름차순")
+    var selectedSortIndex by remember { mutableIntStateOf(0) }
+    var expanded by remember { mutableStateOf(false) }
+    val onExpandedChanged = { newExpanded: Boolean ->
+        expanded = newExpanded
+    }
+    val onSortSelected = { index: Int ->
+        selectedSortIndex = index
+        viewModel.sortTodos(index)
+        onExpandedChanged(false)
+    }
+
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -340,6 +325,28 @@ fun TopBar(viewModel: TodoViewModel) {
                     modifier = Modifier.padding(8.dp)
                 )
             }
+        },
+        navigationIcon = {
+            var expanded by remember { mutableStateOf(false) }
+            IconButton(
+                onClick = { expanded = !expanded }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = "Sort",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            SortDropdown(
+                sortOptions = sortOptions,
+                selectedSortIndex = selectedSortIndex,
+                expanded = expanded,
+                onExpandedChanged = {
+                    expanded = it
+                    viewModel.updateTodo()
+                },
+                onSortSelected = onSortSelected
+            )
         }
     )
 }
@@ -384,10 +391,6 @@ fun PriorityDropdown(
                     text = { Text(priority) },
                     onClick = { onPrioritySelected(index) },
                     modifier = Modifier.padding(5.dp),
-                    leadingIcon = {},
-                    trailingIcon = {},
-                    colors = MenuDefaults.itemColors(),
-                    contentPadding = MenuDefaults.DropdownMenuItemContentPadding,
                 )
             }
         }
@@ -395,9 +398,13 @@ fun PriorityDropdown(
 }
 
 @Composable
-private fun PriorityDropdownButton() {
+private fun PriorityDropdownButton(viewModel: TodoViewModel) {
     val priorities = listOf("없음", "낮음", "중간", "높음")
-    var selectedPriorityIndex by remember { mutableIntStateOf(0) }
+    var selectedPriorityIndex by remember {
+        mutableIntStateOf(
+            viewModel.priorityState
+        )
+    }
     var expanded by remember { mutableStateOf(false) }
     val onExpandedChanged = { newExpanded: Boolean ->
         expanded = newExpanded
@@ -428,6 +435,7 @@ private fun PriorityDropdownButton() {
             onExpandedChanged = onExpandedChanged,
             onPrioritySelected = { index ->
                 selectedPriorityIndex = index
+                viewModel.priorityState = index
                 onExpandedChanged(false)
             }
         )
@@ -436,7 +444,7 @@ private fun PriorityDropdownButton() {
 
 @Composable
 fun DeadlineButton(viewModel: TodoViewModel) {
-    var selectedDate by remember { mutableStateOf<Date?>(null) }
+    var selectedDate by remember { mutableStateOf(viewModel.selectedTodo?.dueDate) }
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val year = calendar.get(Calendar.YEAR)
@@ -447,7 +455,7 @@ fun DeadlineButton(viewModel: TodoViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(7.dp)
-            .clickable { // 클릭 시 캘린더를 표시
+            .clickable {
                 DatePickerDialog(context, { _, selectedYear, selectedMonth, selectedDay ->
                     calendar.set(selectedYear, selectedMonth, selectedDay)
                     selectedDate = calendar.time
@@ -471,7 +479,6 @@ fun DeadlineButton(viewModel: TodoViewModel) {
         }
         Row {
             Text(
-                /*선택한 마감 날짜를 보이게 함. 마감일 선택 안하면 없음이 기본값*/
                 text = selectedDate?.let {
                     SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(it)
                 } ?: "없음",
@@ -486,3 +493,71 @@ fun DeadlineButton(viewModel: TodoViewModel) {
     }
 }
 
+private fun getPriorityText(priority: Int?): String {
+    return when (priority) {
+        0 -> ""
+        1 -> "!"
+        2 -> "!!"
+        3 -> "!!!"
+        else -> ""
+    }
+}
+
+@Composable
+fun SortDropdown(
+    sortOptions: List<String>,
+    selectedSortIndex: Int,
+    expanded: Boolean,
+    onExpandedChanged: (Boolean) -> Unit,
+    onSortSelected: (Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clickable { onExpandedChanged(!expanded) }
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChanged(false) },
+        ) {
+            sortOptions.forEachIndexed { index, sortOption ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            sortOption,
+                            color = if (index == selectedSortIndex) Color.Blue else Color.Black
+                        )
+                    },
+                    onClick = {
+                        onSortSelected(index)
+                        onExpandedChanged(false)
+                    },
+                    modifier = Modifier.padding(5.dp)
+                )
+            }
+        }
+    }
+}
+
+private val priorityTextStyle = TextStyle(
+    color = Color.Red,
+    fontSize = 16.sp,
+    fontFamily = FontFamily(Font(R.font.jetbrains))
+)
+
+private val titleTextStyle = TextStyle(
+    color = Color.Black,
+    fontSize = 16.sp,
+    fontFamily = FontFamily(Font(R.font.jetbrains))
+)
+
+private val descriptionTextStyle = TextStyle(
+    color = Color.DarkGray,
+    fontSize = 13.sp,
+    fontFamily = FontFamily(Font(R.font.jetbrains))
+)
+
+private val dateTextStyle = TextStyle(
+    color = Color.LightGray,
+    fontSize = 10.sp,
+    fontFamily = FontFamily(Font(R.font.jetbrains))
+)

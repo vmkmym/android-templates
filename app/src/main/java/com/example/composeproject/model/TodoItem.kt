@@ -23,7 +23,7 @@ data class TodoItem(
     @ColumnInfo(name = "dueDate") // 마감일
     val dueDate: Date? = null,
     @ColumnInfo(name = "priority") // 우선순위
-    val priority: Int = 0,
+    var priority: Int = 0,
     @ColumnInfo(name = "is-completed")
     var isCompleted: Boolean = false
 ) {

@@ -19,4 +19,14 @@ class TodoRepository(private val todoDao: TodoDao) {
     suspend fun deleteTodo(todoItem: TodoItem) {
         todoDao.deleteTodo(todoItem)
     }
+
+    fun getTodosSortedByDate(): Flow<List<TodoItem>> = todoDao.getTodosSortedByDate()
+
+    fun getTodosSortedByDueDateDescending(): Flow<List<TodoItem>> = todoDao.getTodosSortedByDueDateDescending()
+
+    fun getTodosSortedByDueDateAscending(): Flow<List<TodoItem>> = todoDao.getTodosSortedByDueDateAscending()
+
+    fun getTodosSortedByPriorityDescending(): Flow<List<TodoItem>> = todoDao.getTodosSortedByPriorityDescending()
+
+    fun getTodosSortedByPriorityAscending(): Flow<List<TodoItem>> = todoDao.getTodosSortedByPriorityAscending()
 }
