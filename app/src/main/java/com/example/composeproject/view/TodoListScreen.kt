@@ -68,13 +68,13 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-
 @Composable
 @ExperimentalMaterial3Api
 fun TodoListScreen(viewModel: TodoViewModel) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    val todos by viewModel.todos.collectAsState()
 
     Scaffold(
         topBar = { TopBar(viewModel) },
@@ -89,7 +89,6 @@ fun TodoListScreen(viewModel: TodoViewModel) {
             }
         }
     ) {
-        val todolist = viewModel.getTodos.collectAsState(initial = listOf())
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -102,7 +101,7 @@ fun TodoListScreen(viewModel: TodoViewModel) {
                     }
                 }
             }
-            items(todolist.value) { todoItem ->
+            items(todos) { todoItem ->
                 TodoListCard(todoItem, viewModel) { selectedTodo ->
                     viewModel.selectedTodo = selectedTodo
                     viewModel.todoTitleState = selectedTodo.title

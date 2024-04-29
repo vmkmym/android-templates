@@ -4,8 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -14,6 +12,8 @@ import com.example.composeproject.model.TodoItem
 import com.example.composeproject.model.TodoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -26,8 +26,16 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
     var priorityState by mutableIntStateOf(0)
     private var selectedTodosState by mutableStateOf<List<TodoItem>>(emptyList())
 
-    val todos: LiveData<List<TodoItem>> get() = _todos
-    private val _todos = MutableLiveData<List<TodoItem>>()
+    val todos: StateFlow<List<TodoItem>> get() = _todos
+    private val _todos = MutableStateFlow<List<TodoItem>>(emptyList())
+
+    init {
+        viewModelScope.launch {
+            todoRepository.getTodos().collect { todos ->
+                _todos.value = todos
+            }
+        }
+    }
 
     fun onTodoTitleChanged(newTitle: String) {
         todoTitleState = newTitle
@@ -108,13 +116,15 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
 
     fun sortTodos(sortOption: Int) {
         viewModelScope.launch {
-            getTodos = when (sortOption) {
+            when (sortOption) {
                 0 -> todoRepository.getTodosSortedByDate()
                 1 -> todoRepository.getTodosSortedByDueDateDescending()
                 2 -> todoRepository.getTodosSortedByDueDateAscending()
                 3 -> todoRepository.getTodosSortedByPriorityDescending()
                 4 -> todoRepository.getTodosSortedByPriorityAscending()
                 else -> todoRepository.getTodos()
+            }.collect { sortedTodos ->
+                _todos.value = sortedTodos
             }
         }
     }
