@@ -103,11 +103,7 @@ fun TodoListScreen(viewModel: TodoViewModel) {
             }
             items(todos) { todoItem ->
                 TodoListCard(todoItem, viewModel) { selectedTodo ->
-                    viewModel.selectedTodo = selectedTodo
-                    viewModel.todoTitleState = selectedTodo.title
-                    viewModel.todoDescriptionState = selectedTodo.description
-                    viewModel.dueDateState = selectedTodo.dueDate
-                    viewModel.priorityState = selectedTodo.priority
+                    viewModel.selectTodo(selectedTodo)
                     showBottomSheet = true
                 }
             }

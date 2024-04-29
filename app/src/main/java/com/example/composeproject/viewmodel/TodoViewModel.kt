@@ -128,6 +128,14 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
             }
         }
     }
+
+    fun selectTodo(todo: TodoItem) {
+        selectedTodo = todo
+        todoTitleState = todo.title
+        todoDescriptionState = todo.description
+        dueDateState = todo.dueDate
+        priorityState = todo.priority
+    }
 }
 
 class TodoViewModelFactory(private val repository: TodoRepository) : ViewModelProvider.Factory {
