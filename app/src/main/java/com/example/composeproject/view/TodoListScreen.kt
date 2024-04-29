@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -73,39 +74,53 @@ import java.util.Locale
 fun TodoListScreen(viewModel: TodoViewModel) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
     val todos by viewModel.todos.collectAsState()
 
     Scaffold(
         topBar = { TopBar(viewModel) },
-        floatingActionButton = {
-            FloatingActionButton(
-                shape = CircleShape,
-                onClick = {
-                    showBottomSheet = true
-                }
-            ) {
-                Icon(Icons.Filled.Create, contentDescription = "Add Todo")
-            }
+        floatingActionButton = { AddTodoButton(viewModel) }
+    ) {
+        TodoList(it, viewModel, sheetState, scope, todos)
+    }
+}
+
+@Composable
+private fun AddTodoButton(viewModel: TodoViewModel) {
+    FloatingActionButton(
+        shape = CircleShape,
+        onClick = {
+            viewModel.showBottomSheet = true
         }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-        ) {
-            item {
-                if (showBottomSheet) {
-                    TodoInputSheet(sheetState, viewModel, scope) {
-                        showBottomSheet = false
-                    }
+        Icon(Icons.Filled.Create, contentDescription = "Add Todo")
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+private fun TodoList(
+    it: PaddingValues,
+    viewModel: TodoViewModel,
+    sheetState: SheetState,
+    scope: CoroutineScope,
+    todos: List<TodoItem>
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(it)
+    ) {
+        item {
+            if (viewModel.showBottomSheet) {
+                TodoInputSheet(sheetState, viewModel, scope) {
+                    viewModel.showBottomSheet = false
                 }
             }
-            items(todos) { todoItem ->
-                TodoListCard(todoItem, viewModel) { selectedTodo ->
-                    viewModel.selectTodo(selectedTodo)
-                    showBottomSheet = true
-                }
+        }
+        items(todos) { todoItem ->
+            TodoListCard(todoItem, viewModel) { selectedTodo ->
+                viewModel.selectTodo(selectedTodo)
+                viewModel.showBottomSheet = true
             }
         }
     }

@@ -25,6 +25,8 @@ class TodoViewModel(private val todoRepository: TodoRepository = Graph.todoRepos
     var dueDateState by mutableStateOf<Date?>(null)
     var priorityState by mutableIntStateOf(0)
     private var selectedTodosState by mutableStateOf<List<TodoItem>>(emptyList())
+    var showBottomSheet by mutableStateOf(false)
+
 
     val todos: StateFlow<List<TodoItem>> get() = _todos
     private val _todos = MutableStateFlow<List<TodoItem>>(emptyList())
