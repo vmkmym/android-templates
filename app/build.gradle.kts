@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.savedstate)
     implementation(libs.androidx.lifecycle.compiler)
     implementation(libs.androidx.lifecycle.common.java8)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.androidx.lifecycle.runtime.testing)
 
     // val cameraxVersion = "1.3.3"
@@ -71,6 +72,7 @@ dependencies {
     implementation(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
+    // basic
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
